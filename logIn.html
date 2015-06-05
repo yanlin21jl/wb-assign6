@@ -1,7 +1,7 @@
 <!doctype html>
 <head>
   <meta charset="utf-8">
-  <title>個人頁面</title>
+  <title>登入頁面</title>
   <meta name="viewport" content="width=device-width">
   <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
   <script type="text/javascript" src="http://www.parsecdn.com/js/parse-1.4.2.min.js"></script>
@@ -9,54 +9,100 @@
   <link rel="stylesheet" href="css.css">
 
   <!--引入初始化 Parse 的 js 檔案-->
-  <script type="text/javascript" src="key.js"></script>
+  <script type="text/javascript" src = "key.js"></script>
   <script  type="text/javascript">
-  
-    $(document).ready(function(){
+    $(document).on('submit','#logInForm',function(e){
+      console.log('logIn submit');
       INTP();
-      var currentUser = Parse.User.current();
-      if (currentUser) {
-         var Name = currentUser.get('username');
-         var ST   = currentUser.get('teacher');
-         document.getElementById('name').innerHTML = Name;
-         if (ST == true) {
-          document.getElementById('role').innerHTML ="老師";
-         } else {
-          document.getElementById('role').innerHTML ="學生";
-         };
-      } else {
-         alert("您尚未登入");
-         window.location = "logIn.html"; ;
-         return null ;
+      var Ne=document.getElementById('username').value;
+      var Ps=document.getElementById('password').value;
+      Parse.User.logIn(Ne, Ps, {
+        success: function(user) {
+          Attend();                         //function to set attend
+        },
+        error: function(user, error) {
+          alert("Error: " + error.code + " " + error.message);
+        }
+      });
+      event.preventDefault();
+
+
+      
+
+      function Attend (argument) {
+        var User = Parse.Object.extend("User");
+        var query = new Parse.Query(User);
+        query.equalTo("username", Ne);
+        query.find({
+          success: function(results) {
+            var object = results[0];
+            var ID = object.id;
+            var user = new Parse.User();
+            user.id = ID;
+            user.set("Attd", true);
+            user.save(null, {
+              success: function(user) {
+                alert("已登入並簽到成功");                //提示簽到成功
+                window.location = "index.html";
+                var currentUser = Parse.User.current();
+
+              },
+              error: function(user, error) {
+                alert("Error: " + error.code + " " + error.message);
+              }
+            });
+          },
+          error: function(error) {
+    
+          }
+
+        });
       }
 
-      /* 顯示登入者名稱，避免未登入者進入此頁面*/
-          //提示 1 : 可用轉址的方式，讓未登入的使用者轉址到 logIn.html
-          //提示 2 : 請在 <span id="name" > 中顯示使用者名稱，在 <span id="role">中顯示角色  
-      
-    });
-  
-    $(document).on('click',"#logOut",function(){
-      console.log("Logout clicked");
-      Parse.User.logOut();
-      alert("已登出")
-      window.location = "logIn.html";
-      return null ;
-      /* 執行登出動作，並轉址到 logIn 頁面*/
-        // 可參考 : https://parse.com/docs/js/guide#users-current-user
 
-      /* 結束 */
-    });
-
+    });//endof logInBtn onSubmit
   </script>
 </head>
 
 <body>
   <div class="container">
     <div class="row">
-      <h2>你是已經簽到的<span id="role"></span>：<span id="name"></span></h2>
-      <div id="logOut" class="btn btn-danger">登出</div>
-      <a class="btn" href="attendantList.html">老師頁面</a>
+      <form id="logInForm" class="form-horizontal">
+      <fieldset>
+
+      <!-- Form Name -->
+      <legend>登入</legend>
+
+      <!-- Text input-->
+      <div class="form-group">
+        <label class="col-md-4 control-label" for="username">使用者名稱</label>
+        <div class="col-md-4">
+        <input id="username" name="username" type="text" placeholder="username" class="form-control input-md" required="">
+
+        </div>
+      </div>
+
+      <!-- Password input-->
+      <div class="form-group">
+        <label class="col-md-4 control-label" for="password">使用者密碼</label>
+        <div class="col-md-4">
+          <input id="password" name="password" type="password" placeholder="password" class="form-control input-md" required="">
+
+        </div>
+      </div>
+
+      <!-- Button -->
+      <div class="form-group">
+        <label class="col-md-4 control-label" for="logInBtn"></label>
+        <div class="col-md-4">
+          <button id="logInBtn" name="logInBtn" class="btn btn-primary">登入</button>
+          <a href="assign6.html" class="btn">註冊</a>
+          <a href="index.html" class="btn">個人頁面</a>
+          <a href="attendantList.html" class="btn">老師頁面</a>
+        </div>
+      </div>
+      </fieldset>
+      </form>
     </div>
   </div>
 </body>
